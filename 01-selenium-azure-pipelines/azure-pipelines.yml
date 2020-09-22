@@ -1,0 +1,57 @@
+resources:
+  repositories:
+    - repository: self
+      type: git
+      name: MyProject/StudentManagement
+      trigger:
+        - master
+
+variables:
+  AppUrl: 'http://localhost:8000'
+  Headless: true
+  ScreenShotLocation: '$(Build.ArtifactStagingDirectory)'
+
+stages:
+  - stage: Build
+    displayName: Build image
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: DockerCompose@0
+            displayName: 'Run application and db'
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerComposeFile: '**/docker-compose.yml'
+              action: 'Run services'
+          - task: FileTransform@1
+            inputs:
+              folderPath: '$(System.DefaultWorkingDirectory)'
+              fileType: 'json'
+              targetFiles: '**/appsettings.test.json'
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore project dependencies'
+            inputs:
+              command: 'restore'
+              projects: '**/*.sln'
+          - task: DotNetCoreCLI@2
+            displayName: 'Build the project - Release'
+            inputs:
+              command: 'build'
+              arguments: '--no-restore --configuration Release'
+              projects: '**/*.sln'
+          - task: DotNetCoreCLI@2
+            displayName: 'Run Tests'
+            inputs:
+              command: 'test'
+              projects: '**/*FunctionalTests.csproj'
+              arguments: '--configuration Release --no-restore --no-build'
+          - task: PublishBuildArtifacts@1
+            condition: always()
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'screenshots'
+              publishLocation: 'Container'
+          

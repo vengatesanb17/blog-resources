@@ -1,0 +1,20 @@
+version: "3"
+services:
+  web:
+    container_name: webserver
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "8000:80"
+    depends_on:
+      - sqligtest
+  sqligtest:
+    container_name: sqligtest
+    image: "mcr.microsoft.com/mssql/server:2017-CU21-ubuntu-16.04"
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "DatabasePassword123!"
+      ACCEPT_EULA: "Y"
+
