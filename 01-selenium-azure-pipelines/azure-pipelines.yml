@@ -31,6 +31,11 @@ stages:
               folderPath: '$(System.DefaultWorkingDirectory)'
               fileType: 'json'
               targetFiles: '**/appsettings.test.json'
+          - task: UseDotNet@2
+            displayName: 'Use .NET SDK'
+            inputs:
+              packageType: 'sdk'
+              version: '3.x' # Use a version <= 3 if needed
           - task: DotNetCoreCLI@2
             displayName: 'Restore project dependencies'
             inputs:
